@@ -55,6 +55,7 @@ export const cacheExchange = <C extends Partial<CacheExchangeOpts>>(
   const blockedDependencies: Dependencies = new Set();
   const requestedRefetch: Operations = new Set();
   const deps: DependentOperations = new Map();
+  const errors = new Map();
 
   const isBlockedByOptimisticUpdate = (dependencies: Dependencies): boolean => {
     for (const dep of dependencies.values())
@@ -105,6 +106,7 @@ export const cacheExchange = <C extends Partial<CacheExchangeOpts>>(
       // Delete reference to operation if any exists to release it
       operations.delete(operation.key);
       results.delete(operation.key);
+      errors.delete(operation.key);
       // Mark operation layer as done
       noopDataState(store.data, operation.key);
     } else if (
@@ -158,7 +160,12 @@ export const cacheExchange = <C extends Partial<CacheExchangeOpts>>(
   const operationResultFromCache = (
     operation: Operation
   ): OperationResultWithMeta => {
-    const result = query(store, operation, results.get(operation.key));
+    const result = query(
+      store,
+      operation,
+      results.get(operation.key),
+      errors.get(operation.key)
+    );
     const cacheOutcome: CacheOutcome = result.data
       ? !result.partial
         ? 'hit'
@@ -199,6 +206,7 @@ export const cacheExchange = <C extends Partial<CacheExchangeOpts>>(
 
     let queryDependencies: void | Dependencies;
     let data: Data | null = result.data;
+    errors.set(operation.key, result.error);
     if (data) {
       // Write the result to cache and collect all dependencies that need to be
       // updated
