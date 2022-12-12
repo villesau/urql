@@ -95,7 +95,6 @@ export const makeOutputPlugins = ({ isProduction, extension }) => {
       'process.env.NODE_ENV': JSON.stringify('production'),
       '__pkg_version__': JSON.stringify(settings.pkg.version),
     } : {
-      // TODO:  this is currently not applying
       '__pkg_version__': JSON.stringify(settings.pkg.version),
     }),
     cjsCheck({ extension }),
